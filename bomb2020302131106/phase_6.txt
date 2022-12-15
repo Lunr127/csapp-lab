@@ -1,0 +1,200 @@
+phase_6{
+	rsi = *(rsp+0x30)
+	callq read_six_number
+	r13 = *(rsp+0x30)
+	r12 = 0
+4011be:
+	rbp = r13
+	eax = *(r13)
+	eax = eax - 1
+	if (eax <= 5){
+		goto 4011d2
+	}
+	else call explode_bomb
+4011d2:
+	r12 = r12 + 1
+	if (r12 == 6){
+		esi = 0
+		goto 401225
+	}
+	ebx = r12
+4011e6:
+	rax = ebx
+	eax = *(rsp + 0x30 + rax*4)
+	if (*rbp != eax)
+		goto 4011f7
+	else callq explode_bomb
+4011f7:
+	ebx = exb + 1
+	if (ebx <= 5){
+		goto 4011e6
+	}
+	r13 += 4
+	goto 4011be
+---------------------
+401205:
+	rdx = *(rdx + 8)
+	eax += 1
+	if(ecx != eax){
+		goto 401205
+	}
+	goto 401217
+401212:
+	edx = 0x6042f0
+401217:
+	*(rsp + 2*rsi) = rdx
+	rsi += 4
+	if (rsi == 0x18)
+		goto 40123a
+401225:
+	ecx = *(rsp + rsi + 0x30)
+	if (ecx <= 1){
+		goto 401212
+	}
+	eax = 1
+	edx = 0x6042f0
+	goto 401205
+--------------------
+40123a:
+	rbx = *(rsp)
+	rax = *(rsp + 0x8)
+	rsi = *(rsp + 0x30)
+	rcx = rbx
+40124b:
+	rdx = *rax
+	*(rcx + 0x8) = rdx
+	rax += 8
+	if (rax == rsi){
+		goto 401260
+	}
+	rcx = rdx
+	goto 40124b
+--------------------
+401260:
+	*(rdx + 8) = 0
+	ebp = 5
+40126d:
+	rax = *(rbx + 8)
+	eax = *rax
+	if (eax >= *(rbx))
+		goto 40127c
+	else callq explode_bomb
+40127c:
+	rbx = *(rbx + 8)
+	ebp -= 1
+	if (ebp != 0)
+		goto 40126d
+}
+
+
+
+phase_6(rdi)
+{
+	r13 = rsp;
+	rsi = rsp;
+	read_six_numbers(rdi, rsi);
+	r14 = rsp;
+	// 数字范围为1-6且互不重复
+    for (r12 = 0; r12 != 6; r12++) {
+        rbp = r13;
+        eax = *r13;
+        eax -= 1;
+        if (eax > 5)
+            explode_bomb();
+        for (ebx = r12+1; ebx <= 5; ebx++) {
+            rax = ebx;
+            eax = *(rsp+rax*4);
+            if (*rbp == eax)
+                explode_bomb();
+        }
+        r13 += 4;
+    }
+    
+    // 生成 node_array
+	rsi = rsp + 0x18;
+	rax = r14;
+	for (rsi = 0; rsi != 0x18; rsi += 4) {
+        ecx = *(rsp+rsi);
+        if (ecx <= 1)
+            edx = 0x6032d0;
+        else {
+            edx = 0x6032d0;
+            for (eax = 1; eax != ecx; eax++) {
+                rdx = *(rdx+8);
+            }
+        }
+        *(rsp+2*rsi+20) = rdx;
+	}
+
+	// 将整数数组填充进 node_array
+    rbx = *(rsp+0x20);
+    rcx = rbx;
+    for (rax = rsp+0x28; rax != rsp+0x50; rax += 8) {
+        rdx = *rax;
+        *(rcx+8) = rdx;
+        rcx = rdx; 
+    }
+
+    // 判断 node_array 是否为升序
+	*(rdx+8) = 0;
+	for (ebp = 5; ebp != 0; ebp -= 1) {
+		rax = *(rbx+0x8);
+        eax = *rax;
+        if(eax > *(rbx))
+            explode_bomb();
+        rbx = *(rbx+8);
+	}
+
+
+
+
+
+typedef struct {
+    int val;
+    ListNode* next;
+} ListNode;
+
+void phase_6(char* output)
+{
+    int array[6];
+    ListNode* node_array[6];
+    read_six_numbers(output, array);
+    // 数字范围为1-6且互不重复
+    for (int i = 0; i != 6; i++) {
+        int num = array[i];
+        num--;
+        if ((unsigned int)num > 5)		// 最大为6
+            explode_bomb();
+        for (int j = i+1; j <= 5; j++) {
+            if (array[i] == array[j])	// 每个元素都不重复
+                explode_bomb();
+        }
+    }
+    // 生成 node_array
+	for (int i = 0; i < 6; i ++) {
+        int cur = array[i];
+        ListNode* node = 0x6032d0;		// 链表head
+        if (cur > 1) {
+            for (int j = 1; j < cur; j++) {
+                node = node->next;
+            }
+        }
+        node_array[i] = node;
+	}
+    for (int i = 0; i < 5; i++) {
+        node_array[i]->next = node_array[i+1];
+    }
+    ListNode* ptr = node_array[0];
+    for (int i = 5; i > 0; i--) {
+        if (ptr->val > ptr->next->val)
+            explode_bomb();
+        ptr = ptr->next;
+    }
+}
+
+0x6042f0 <node1>:       0x00000143      0x00000001      0x00604300      0x00000000
+0x604300 <node2>:       0x000000aa      0x00000002      0x00604310      0x00000000
+0x604310 <node3>:       0x0000013f      0x00000003      0x00604320      0x00000000
+0x604320 <node4>:       0x00000345      0x00000004      0x00604330      0x00000000
+0x604330 <node5>:       0x00000078      0x00000005      0x00604340      0x00000000
+0x604340 <node6>:       0x000000e8      0x00000006      0x00000000      0x00000000

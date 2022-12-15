@@ -1,0 +1,59 @@
+func4(rdi, rsi, rdx)
+{
+	eax = edx;
+	eax -= esi;
+	ebx = eax;
+	ebx >>= 31;
+	eax += ebx;
+	eax >>= 1;				
+	ebx = rax + rsi;		
+	if (ebx <= edi) {
+		goto 4010c9;
+	}
+	edx = rbx - 1;
+	goto func4;				
+	eax += ebx;
+	goto 4010d9;
+4010c9:
+	eax = ebx;
+	if (ebx >= edi) {		
+		goto 4010d9;
+	}
+	esi = rbx + 1;
+	goto func4;				
+	eax = eax + ebx;
+401007:
+	return;
+}
+
+func4(rdi, rsi, rdx)
+{
+	eax = edx - esi;
+	eax = (eax >> 31 + eax) >> 1;
+	ebx = rax + rsi;	
+	if (ebx <= edi) {
+		eax = ebx;
+		if (ebx >= edi) {
+			return eax;
+		}
+		esi = rbx + 1;
+		rax = func4(edi, esi, edx);
+		eax = eax + ebx;
+	}
+	else{
+		edx = rbx - 1;
+		rax = func4(edi, esi, edx);
+		eax += ebx;
+	}
+	return eax;
+}
+
+int func4(int x, int a, int b)
+{
+    int c = (b - a) / 2 + a;
+    if (c <= x) {
+    	if (c >= x) return c;
+        return func4(x, c+1, b) + c;
+    }
+    return func4(x, a, c-1) + c;
+}
